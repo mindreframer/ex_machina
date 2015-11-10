@@ -105,6 +105,20 @@ defmodule ExMachina.Ecto do
     end
   end
 
+  require IEx
+  defp get_deep_assocs(%{__struct__: struct}) do
+    for a <- struct.__schema__(:associations) do
+      IO.inspect(struct)
+      IEx.pry
+      IO.inspect(struct.__schema__(:association, a))
+
+      # ExMachina.EctoTest.GrandParent.__schema__(:association, :child).queryable ==> ExMachina.EctoTest.Parent
+      # ExMachina.EctoTest.Parent.__schema__(:association, :child).queryable ==> ExMachina.EctoTest.Child
+      {a, struct.__schema__(:association, a)}
+      #get_deep_assocs()
+    end
+  end
+
   defp belongs_to_assocs(model) do
     for {a, %{__struct__: Ecto.Association.BelongsTo}} <- get_assocs(model), do: a
   end
@@ -142,7 +156,7 @@ defmodule ExMachina.Ecto do
 
   """
   def save_record(module, repo, %{__struct__: model, __meta__: %{__struct__: Ecto.Schema.Metadata}} = record) do
-    record = record |> persist_belongs_to_associations(module)
+    record  = record |> persist_belongs_to_associations(module)
     changes = record |> convert_to_changes
 
     struct(model)
