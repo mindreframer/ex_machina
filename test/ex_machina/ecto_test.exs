@@ -2,6 +2,34 @@ defmodule ExMachina.EctoTest do
   use ExMachina.EctoCase
   alias ExMachina.TestRepo
 
+
+  defmodule GrandParent do
+    use Ecto.Model
+    schema "grand_parents" do
+      field :name, :string
+      has_one :child, ExMachina.EctoTest.Parent, foreign_key: :parent_id
+    end
+  end
+
+  defmodule Parent do
+    use Ecto.Model
+    schema "parents" do
+      field :name, :string
+      belongs_to :parent, ExMachina.EctoTest.GrandParent, foreign_key: :parent_id
+      has_one :child, ExMachina.EctoTest.Child, foreign_key: :child_id
+    end
+  end
+
+
+  defmodule Child do
+    use Ecto.Model
+    schema "children" do
+      field :name, :string
+      belongs_to :parent, ExMachina.EctoTest.Parent, foreign_key: :child_id
+    end
+  end
+
+
   defmodule User do
     use Ecto.Model
     schema "users" do
@@ -59,6 +87,33 @@ defmodule ExMachina.EctoTest do
         user: assoc(attrs, :user)
       }
     end
+
+
+    def factory(:grand_parent, attrs) do
+      %GrandParent{
+        name: "Grandpa",
+        child: build(:parent)
+      }
+    end
+
+    def factory(:parent, attrs) do
+      %Parent{
+        name: "Paps",
+        child: build(:child)
+      }
+    end
+
+    def factory(:child, attrs) do
+      %Child{
+        name: "Kid"
+      }
+    end
+
+  end
+
+  @tag parent: true
+  test "works with object trees deeper than 2 levels" do
+    grand_parent = Factory.create(:grand_parent) #|> IO.inspect
   end
 
   test "raises helpful error message if no repo is provided" do
